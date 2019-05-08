@@ -26,6 +26,12 @@ tool which brute forces the pattern.
   cargo build --release
   ```
 
+- Tweak properties for brute force attempt:
+  ```bash
+  # Edit constants
+  vim src/config.rs
+  ```
+
 - Boot phone into TWRP recovery
 - Make sure your phone is connected through ADB
   ```bash

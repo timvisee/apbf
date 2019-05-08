@@ -46,8 +46,9 @@ fn main() {
         .inspect(render_pat)
         .map(gen_phrase)
         .for_each(|code| {
-            try_phrase(&code);
+            println!("Attempting: '{}'", code);
             pb.inc();
+            try_phrase(&code);
         });
 
     println!("\nDone!");
@@ -98,7 +99,7 @@ fn dot_char(pos: u16) -> char {
 fn render_pat(pattern: &Vec<&u16>) {
     // Create a pattern slug and print it
     let slug = pattern.iter().map(|p| format!("{}", p)).join("-");
-    println!("\nPattern: {}", slug);
+    println!("\n\nPattern: {}", slug);
 
     // Render the pattern grid
     (0..GRID_SIZE).for_each(|y| {
@@ -117,14 +118,10 @@ fn render_pat(pattern: &Vec<&u16>) {
 ///
 /// Panics when unexpected output is returned (possibly when an item is found).
 fn try_phrase(phrase: &str) {
-    println!("Attempting: '{}'", phrase);
-
     // Build the decrypt command
     let out = Command::new("adb")
         .arg("shell")
-        .arg("twrp")
-        .arg("decrypt")
-        .arg(format!("'{}'", phrase))
+        .arg(format!("twrp decrypt '{}'", phrase))
         .output()
         .expect("failed to run decrypt command");
 
@@ -136,7 +133,7 @@ fn try_phrase(phrase: &str) {
         return;
     }
 
-    println!("status: {}", stdout);
+    println!("status: {}", status);
     println!("stdout: {}", stdout);
     println!("stderr: {}", stderr);
 

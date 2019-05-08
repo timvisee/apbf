@@ -9,14 +9,46 @@ use itertools::Itertools;
 use pbr::ProgressBar;
 use permutator::Permutation;
 
+/// The dots we should generate patterns on for brute forcing.
+///
+/// The indices are row-by-row based, for example:
+///
+/// ```
+/// 0 1 2    00 01 02 03    00 01 02 03 04
+/// 3 4 5    04 05 06 07    05 06 07 08 09
+/// 6 7 8    08 09 10 11    10 11 12 13 14
+///          12 13 14 15    15 16 17 18 19
+///                         20 21 22 23 34
+/// ```
 const DOTS: [u16; 12] = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
+
+/// The size of the pattern grid, probably 3, 4 or 5.
 const GRID_SIZE: u16 = 4;
+
+/// The minimum length of patterns to attempt.
 const PAT_LEN_MIN: u16 = 4;
-const PAT_DIST_MAX: u16 = 1;
+
+/// The maximum length of patterns to attempt.
 const PAT_LEN_MAX: u16 = 6;
 
+/// The maximum distance between dots in a pattern.
+///
+/// Imagine the following distances for each dot, where `X` is the center:
+/// ```
+/// 2 2 2 2 2
+/// 2 1 1 1 2
+/// 2 1 X 1 2
+/// 2 1 1 1 2
+/// 2 2 2 2 2
+/// ```
+const PAT_DIST_MAX: u16 = 1;
+
+/// Output normally returned to stdout for a decryption attempt.
+///
+/// The tool will stop if anything else was returned.
 const STDOUT_NORMAL: &str = "Attempting to decrypt data partition via command line.\n";
 
+/// Application entry point.
 fn main() {
     // Get a list of dots we can use
     let dots = DOTS;
@@ -51,38 +83,57 @@ fn main() {
     println!("\nDone!");
 }
 
+/// Test whether the distance between all dots are allowed based on `PAT_DIST_MAX`.
+///
+/// If the distance for some dots is greater, `false` is returned and the pattern should be
+/// skipped.
 fn valid_distance(dots: &Vec<&u16>) -> bool {
     dots.windows(2)
         .all(|dots| distance(*dots[0], *dots[1]) <= PAT_DIST_MAX)
 }
 
+/// Determine the distance between two dots.
+///
+/// See `PAT_DIST_MAX`.
 fn distance(a: u16, b: u16) -> u16 {
+    // Get the dot coordinates
     let a = dot_pos(a);
     let b = dot_pos(b);
 
+    // Determine the distance and return
     cmp::max(
         (a.0 as i32 - b.0 as i32).abs(),
         (a.1 as i32 - b.1 as i32).abs(),
     ) as u16
 }
 
+/// Find the (x, y) position for a given dot index.
+///
+/// If the `GRID_SIZE` is 4, a dot index of `6` will return `(2, 1)`.
 fn dot_pos(dot: u16) -> (u16, u16) {
     (dot / GRID_SIZE, dot % GRID_SIZE)
 }
 
-fn gen_phrase(dots: Vec<&u16>) -> String {
-    dots.iter().map(|p| dot_char(**p)).collect()
+/// Generate the pass phrase for the given pattern.
+fn gen_phrase(pattern: Vec<&u16>) -> String {
+    pattern.iter().map(|p| dot_char(**p)).collect()
 }
 
+/// Find the character to use in the passphrase for a given dot index.
 fn dot_char(pos: u16) -> char {
     ('1' as u8 + pos as u8) as char
 }
 
-fn render_pat(dots: &Vec<&u16>) {
-    println!();
+/// Render the given pattern in the terminal.
+fn render_pat(pattern: &Vec<&u16>) {
+    // Create a pattern slug and print it
+    let slug = pattern.iter().map(|p| format!("{}", p)).join("-");
+    println!("\nPattern: {}", slug);
+
+    // Render the pattern grid
     (0..GRID_SIZE).for_each(|y| {
         (0..GRID_SIZE).for_each(|x| {
-            if dots.contains(&&(y * GRID_SIZE + x)) {
+            if pattern.contains(&&(y * GRID_SIZE + x)) {
                 print!("●");
             } else {
                 print!("○");
@@ -96,7 +147,7 @@ fn render_pat(dots: &Vec<&u16>) {
 ///
 /// Panics when unexpected output is returned (possibly when an item is found).
 fn try_phrase(phrase: &str) {
-    println!("Attempting: {}", phrase);
+    println!("Attempting: '{}'", phrase);
 
     // Build the decrypt command
     let out = Command::new("adb")

@@ -26,7 +26,7 @@ tool which brute forces the pattern.
   cargo build --release
   ```
 
-- Tweak properties for brute force attempt:
+- Tweak properties for brute force attempt in [`config.rs`](./src/config.rs):
   ```bash
   # Edit constants
   vim src/config.rs

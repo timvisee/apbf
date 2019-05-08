@@ -18,7 +18,7 @@ use permutator::Permutation;
 /// 3 4 5    04 05 06 07    05 06 07 08 09
 /// 6 7 8    08 09 10 11    10 11 12 13 14
 ///          12 13 14 15    15 16 17 18 19
-///                         20 21 22 23 34
+///                         20 21 22 23 24
 /// ```
 const DOTS: [u16; 12] = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
 
@@ -26,10 +26,10 @@ const DOTS: [u16; 12] = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
 const GRID_SIZE: u16 = 4;
 
 /// The minimum length of patterns to attempt.
-const PAT_LEN_MIN: u16 = 4;
+const PATTERN_LEN_MIN: u16 = 4;
 
 /// The maximum length of patterns to attempt.
-const PAT_LEN_MAX: u16 = 6;
+const PATTERN_LEN_MAX: u16 = 6;
 
 /// The maximum distance between dots in a pattern.
 ///
@@ -41,7 +41,7 @@ const PAT_LEN_MAX: u16 = 6;
 /// 2 1 1 1 2
 /// 2 2 2 2 2
 /// ```
-const PAT_DIST_MAX: u16 = 1;
+const PATTERN_DISTANCE_MAX: u16 = 1;
 
 /// Output normally returned to stdout for a decryption attempt.
 ///
@@ -55,7 +55,7 @@ fn main() {
 
     // Generate all possible patterns
     println!("Generating possible patterns...");
-    let patterns: Vec<_> = (PAT_LEN_MIN..=PAT_LEN_MAX)
+    let patterns: Vec<_> = (PATTERN_LEN_MIN..=PATTERN_LEN_MAX)
         .flat_map(|n| {
             dots.iter().combinations(n as usize).flat_map(|mut dots| {
                 dots.permutation()
@@ -83,18 +83,18 @@ fn main() {
     println!("\nDone!");
 }
 
-/// Test whether the distance between all dots are allowed based on `PAT_DIST_MAX`.
+/// Test whether the distance between all dots are allowed based on `PATTERN_DISTANCE_MAX`.
 ///
 /// If the distance for some dots is greater, `false` is returned and the pattern should be
 /// skipped.
 fn valid_distance(dots: &Vec<&u16>) -> bool {
     dots.windows(2)
-        .all(|dots| distance(*dots[0], *dots[1]) <= PAT_DIST_MAX)
+        .all(|dots| distance(*dots[0], *dots[1]) <= PATTERN_DISTANCE_MAX)
 }
 
 /// Determine the distance between two dots.
 ///
-/// See `PAT_DIST_MAX`.
+/// See `PATTERN_DISTANCE_MAX`.
 fn distance(a: u16, b: u16) -> u16 {
     // Get the dot coordinates
     let a = dot_pos(a);

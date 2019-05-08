@@ -1,0 +1,10 @@
+[package]
+name = "apbf"
+version = "0.1.0"
+authors = ["timvisee <tim@visee.me>"]
+edition = "2018"
+
+[dependencies]
+itertools = "0.8"
+pbr = "1.0"
+permutator = "0.3"

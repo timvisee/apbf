@@ -3,6 +3,7 @@ name = "apbf"
 version = "0.1.0"
 authors = ["timvisee <tim@visee.me>"]
 edition = "2018"
+description = "Tool to brute force Android security pattern through TWRP recovery"
 
 [dependencies]
 itertools = "0.8"

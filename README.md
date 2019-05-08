@@ -1,13 +1,14 @@
 # Android Pattern Brute Force
-A script for brute forcing an Android security pattern through TWRP recovery.
+A tool for brute forcing an Android security pattern through TWRP recovery.
 
 ![Screenshot](./res/screenshot.png)
 
 One day I forgot what security pattern I used on my phone. Therefore I build a
-script which brute forces the pattern.
+tool which brute forces the pattern.
 
 ## Requirements
 - A pattern lock
+- Android Nougat or above
 - [TWRP][twrp] recovery
 - [`adb`][adb] (with connectivity to phone in TWRP)
 - [`git`][git]
@@ -26,9 +27,19 @@ script which brute forces the pattern.
   ```
 
 - Boot phone into TWRP recovery
-- Make sure your phone is connected through ADB (see `adb devices`)
+- Make sure your phone is connected through ADB
+  ```bash
+  # Device must be visible in list
+  adb devices
+  ```
+
 - Show logs (tap nav-bar button on the bottom-right)
-- Start brute forcing: `cargo run --release`
+- Start brute forcing
+  ```bash
+  # Run tool
+  cargo run --release
+  ```
+
 - Wait for a successful attempt, this may take a while
 
 ## License

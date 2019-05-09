@@ -6,8 +6,6 @@ mod config;
 
 use std::cmp;
 use std::process::Command;
-use std::thread;
-use std::time::Duration;
 
 use itertools::Itertools;
 use pbr::ProgressBar;
@@ -45,6 +43,7 @@ fn main() {
                     .collect::<Vec<_>>()
             })
         })
+        .skip(50)
         .collect();
 
     // Initialse brute forcing
@@ -61,9 +60,6 @@ fn main() {
             println!("Passphrase: '{}'", code);
             pb.inc();
             try_phrase(&code);
-
-            // Reboot recovery to try again
-            reboot_recovery();
         });
 
     println!("\nDone!");
@@ -145,7 +141,6 @@ fn try_phrase(phrase: &str) {
     let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
 
     // Test for success
-    thread::sleep(Duration::from_secs(2));
     probe_success();
 
     if status.success() && stdout == STDOUT_NORMAL && stderr == "" {
@@ -183,32 +178,6 @@ fn probe_success() {
     println!("Probe command status: {}", status);
     println!("Probe command stdout: {}", stdout);
     println!("Probe command stderr: {}", stderr);
-
-    panic!("got unexpected output");
-}
-
-/// Reboot recovery to try again.
-fn reboot_recovery() {
-    // Invoke the probe command
-    let out = Command::new("adb")
-        .arg("shell")
-        .arg("reboot recovery")
-        .output()
-        .expect("failed to invoke command to reboot recovery");
-
-    let status = out.status;
-    let stdout = String::from_utf8(out.stdout).expect("output is not in valid UTF-8 format");
-    let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
-
-    // Return for the default state
-    if status.success() && stdout == "" && stderr == "" {
-        thread::sleep(Duration::from_secs(42));
-        return;
-    }
-
-    println!("Reboot command status: {}", status);
-    println!("Reboot command stdout: {}", stdout);
-    println!("Reboot command stderr: {}", stderr);
 
     panic!("got unexpected output");
 }

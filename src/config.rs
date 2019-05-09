@@ -14,9 +14,7 @@
 ///          12 13 14 15    15 16 17 18 19
 ///                         20 21 22 23 24
 /// ```
-// pub const DOTS: [u16; 16] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-// pub const DOTS: [u16; 12] = [1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15];
-pub const DOTS: [u16; 8] = [2, 3, 6, 7, 10, 11, 14, 15];
+pub const DOTS: [u16; 16] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
 
 /// The size of the pattern grid, probably 3, 4 or 5.
 pub const GRID_SIZE: u16 = 4;
@@ -25,9 +23,11 @@ pub const GRID_SIZE: u16 = 4;
 pub const PATTERN_LEN_MIN: u16 = 3;
 
 /// The maximum length of patterns to attempt.
-pub const PATTERN_LEN_MAX: u16 = 6;
+pub const PATTERN_LEN_MAX: u16 = 5;
 
-/// The maximum distance between dots in a pattern.
+/// The maximum distance between dots in a pattern, must be `>= 1`.
+///
+/// A value of 1 means connected dots are always next to each other (may be diagonal).
 ///
 /// Imagine the following distances for each dot, where `X` is the center:
 /// ```

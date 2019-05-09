@@ -6,9 +6,12 @@ A tool for brute forcing an Android security pattern through TWRP recovery.
 One day I forgot what security pattern I used on my phone. Therefore I build a
 tool which brute forces the pattern.
 
+**Note:** I did not succeed brute forcing my pattern with this tool yet. I can
+therefore not guarantee the tool will find your pattern.
+
 ## Requirements
 - A pattern lock
-- Android Nougat or above
+- Android Nougat 8.0 or above
 - [TWRP][twrp] recovery
 - [`adb`][adb] (with connectivity to phone in TWRP)
 - [`git`][git]
@@ -31,6 +34,9 @@ tool which brute forces the pattern.
   # Edit constants
   vim src/config.rs
   ```
+
+  Constrain it as much as possible to reduce pattern search space, which greatly
+  improves brute force speed.
 
 - Boot phone into TWRP recovery
 - Make sure your phone is connected through ADB

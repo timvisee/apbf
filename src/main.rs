@@ -54,11 +54,10 @@ fn main() {
             // Report the phrase to try, show progress bar
             println!("Passphrase: '{}'", code);
             pb.inc();
+            println!();
 
             // Try the phrase, report on success
-            let result = try_phrase(&code);
-            println!();
-            if result {
+            if try_phrase(&code) {
                 println!("\nSuccess!");
                 println!("Here is your pattern in order:");
                 render_pattern_steps(&pattern);

@@ -6,6 +6,8 @@ mod config;
 
 use std::cmp;
 use std::process::Command;
+use std::thread;
+use std::time::Duration;
 
 use itertools::Itertools;
 use pbr::ProgressBar;
@@ -17,6 +19,16 @@ use config::*;
 ///
 /// The tool will stop if anything else was returned.
 const STDOUT_NORMAL: &str = "Attempting to decrypt data partition via command line.\n";
+
+/// The file to probe for decryption succes.
+///
+/// It should exist if decryption succeeded.
+const PROBE_FILE: &str = "/dev/block/dm-0";
+
+/// The normal output to stderr when probing fails.
+///
+/// The tool will stop if anything else was returned.
+const PROBE_STDERR: &str = "ls: /dev/block/dm-0: No such file or directory\n";
 
 /// Application entry point.
 fn main() {
@@ -46,9 +58,12 @@ fn main() {
         .inspect(render_pat)
         .map(gen_phrase)
         .for_each(|code| {
-            println!("Attempting: '{}'", code);
+            println!("Passphrase: '{}'", code);
             pb.inc();
             try_phrase(&code);
+
+            // Reboot recovery to try again
+            reboot_recovery();
         });
 
     println!("\nDone!");
@@ -129,13 +144,71 @@ fn try_phrase(phrase: &str) {
     let stdout = String::from_utf8(out.stdout).expect("output is not in valid UTF-8 format");
     let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
 
-    if status.success() && stdout == STDOUT_NORMAL {
+    // Test for success
+    thread::sleep(Duration::from_secs(2));
+    probe_success();
+
+    if status.success() && stdout == STDOUT_NORMAL && stderr == "" {
         return;
     }
 
     println!("status: {}", status);
     println!("stdout: {}", stdout);
     println!("stderr: {}", stderr);
+
+    panic!("got unexpected output");
+}
+
+/// Prope the phone for descryption success.
+///
+/// Panics when unexpected output is returned (possibly when an item is found).
+fn probe_success() {
+    // Invoke the probe command
+    let out = Command::new("adb")
+        .arg("shell")
+        .arg("ls")
+        .arg(PROBE_FILE)
+        .output()
+        .expect("failed to invoke command to prope for success");
+
+    let status = out.status;
+    let stdout = String::from_utf8(out.stdout).expect("output is not in valid UTF-8 format");
+    let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
+
+    // Return for the default state
+    if status.code() == Some(1) && stdout == "" && stderr == PROBE_STDERR {
+        return;
+    }
+
+    println!("Probe command status: {}", status);
+    println!("Probe command stdout: {}", stdout);
+    println!("Probe command stderr: {}", stderr);
+
+    panic!("got unexpected output");
+}
+
+/// Reboot recovery to try again.
+fn reboot_recovery() {
+    // Invoke the probe command
+    let out = Command::new("adb")
+        .arg("shell")
+        .arg("reboot recovery")
+        .output()
+        .expect("failed to invoke command to reboot recovery");
+
+    let status = out.status;
+    let stdout = String::from_utf8(out.stdout).expect("output is not in valid UTF-8 format");
+    let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
+
+    // Return for the default state
+    if status.success() && stdout == "" && stderr == "" {
+        thread::sleep(Duration::from_secs(42));
+        return;
+    }
+
+    println!("Reboot command status: {}", status);
+    println!("Reboot command stdout: {}", stdout);
+    println!("Reboot command stderr: {}", stderr);
 
     panic!("got unexpected output");
 }

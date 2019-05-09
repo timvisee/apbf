@@ -58,7 +58,7 @@ even possible), so it's outside the scope of this project.
   Constrain it as much as possible to reduce pattern search space, which greatly
   improves brute force speed. See [speed](#speed).
 
-- Boot phone into TWRP recovery
+- Freshly boot phone into TWRP recovery
 - Make sure your phone is connected through ADB
   ```bash
   # Device must be visible in list

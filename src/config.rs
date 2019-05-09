@@ -14,13 +14,13 @@
 ///          12 13 14 15    15 16 17 18 19
 ///                         20 21 22 23 24
 /// ```
-pub const DOTS: [u16; 16] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+pub const DOTS: [u16; 9] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
 /// The size of the pattern grid, probably 3, 4 or 5.
-pub const GRID_SIZE: u16 = 4;
+pub const GRID_SIZE: u16 = 3;
 
 /// The minimum length of patterns to attempt.
-pub const PATTERN_LEN_MIN: u16 = 3;
+pub const PATTERN_LEN_MIN: u16 = 4;
 
 /// The maximum length of patterns to attempt.
 pub const PATTERN_LEN_MAX: u16 = 5;
@@ -38,3 +38,9 @@ pub const PATTERN_LEN_MAX: u16 = 5;
 /// 2 2 2 2 2
 /// ```
 pub const PATTERN_DISTANCE_MAX: u16 = 1;
+
+/// The number of milliseconds to wait after each attempt.
+///
+/// This should be >=10000 because TWRP has a decrypt attempt timeout of about 10 seconds, any new
+/// attempts within that time frame fail with no warning.
+pub const ATTEMPT_TIMEOUT: u64 = 10_000;

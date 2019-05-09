@@ -5,7 +5,9 @@ extern crate permutator;
 mod config;
 
 use std::cmp;
-use std::process::Command;
+use std::process::{self, Command};
+use std::thread;
+use std::time::Duration;
 
 use itertools::Itertools;
 use pbr::ProgressBar;
@@ -18,15 +20,8 @@ use config::*;
 /// The tool will stop if anything else was returned.
 const STDOUT_NORMAL: &str = "Attempting to decrypt data partition via command line.\n";
 
-/// The file to probe for decryption succes.
-///
-/// It should exist if decryption succeeded.
-const PROBE_FILE: &str = "/dev/block/dm-0";
-
-/// The normal output to stderr when probing fails.
-///
-/// The tool will stop if anything else was returned.
-const PROBE_STDERR: &str = "ls: /dev/block/dm-0: No such file or directory\n";
+/// Partial output returned to stdout on successful decryption.
+const STDOUT_SUCCESS: &str = "Data successfully decrypted";
 
 /// Application entry point.
 fn main() {
@@ -43,7 +38,6 @@ fn main() {
                     .collect::<Vec<_>>()
             })
         })
-        .skip(50)
         .collect();
 
     // Initialse brute forcing
@@ -54,51 +48,63 @@ fn main() {
     patterns
         .into_iter()
         .map(|pat| pat.clone())
-        .inspect(render_pat)
-        .map(gen_phrase)
-        .for_each(|code| {
+        .inspect(render_pattern)
+        .map(|pattern| (generate_phrase(&pattern), pattern))
+        .for_each(|(code, pattern)| {
+            // Report the phrase to try, show progress bar
             println!("Passphrase: '{}'", code);
             pb.inc();
-            try_phrase(&code);
+
+            // Try the phrase, report on success
+            let result = try_phrase(&code);
+            println!();
+            if result {
+                println!("\nSuccess!");
+                println!("Here is your pattern in order:");
+                render_pattern_steps(&pattern);
+                process::exit(0);
+            }
+
+            // Wait for the next attempt
+            thread::sleep(Duration::from_millis(ATTEMPT_TIMEOUT));
         });
 
-    println!("\nDone!");
+    // We did not find any pattern
+    println!("\nDone! No pattern found.");
 }
 
-/// Test whether the distance between all dots are allowed based on `PATTERN_DISTANCE_MAX`.
+/// Try the given passphrase generated based on a pattern.
 ///
-/// If the distance for some dots is greater, `false` is returned and the pattern should be
-/// skipped.
-fn valid_distance(dots: &Vec<&u16>) -> bool {
-    dots.windows(2)
-        .all(|dots| distance(*dots[0], *dots[1]) <= PATTERN_DISTANCE_MAX)
-}
-
-/// Determine the distance between two dots.
+/// Returns `true` if decryption succeeded, false if not.
 ///
-/// See `PATTERN_DISTANCE_MAX`.
-fn distance(a: u16, b: u16) -> u16 {
-    // Get the dot coordinates
-    let a = dot_pos(a);
-    let b = dot_pos(b);
+/// Panics when unexpected output is returned (possibly when an item is found).
+fn try_phrase(phrase: &str) -> bool {
+    // Build and invoke the decrypt command, collect results
+    let out = Command::new("adb")
+        .arg("shell")
+        .arg(format!("twrp decrypt '{}'", phrase))
+        .output()
+        .expect("failed to invoke decrypt command");
+    let status = out.status;
+    let stdout = String::from_utf8(out.stdout).expect("output is not in valid UTF-8 format");
+    let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
 
-    // Determine the distance and return
-    cmp::max(
-        (a.0 as i32 - b.0 as i32).abs(),
-        (a.1 as i32 - b.1 as i32).abs(),
-    ) as u16
-}
+    // Check for success
+    if status.success() && stdout.contains(STDOUT_SUCCESS) && stderr == "" {
+        return true;
+    }
 
-/// Find the (x, y) position for a given dot index.
-///
-/// If the `GRID_SIZE` is 4, a dot index of `6` will return `(2, 1)`.
-fn dot_pos(dot: u16) -> (u16, u16) {
-    (dot / GRID_SIZE, dot % GRID_SIZE)
-}
+    // Regular output, continue
+    if status.success() && stdout == STDOUT_NORMAL && stderr == "" {
+        return false;
+    }
 
-/// Generate the pass phrase for the given pattern.
-fn gen_phrase(pattern: Vec<&u16>) -> String {
-    pattern.iter().map(|p| dot_char(**p)).collect()
+    // Report and exit
+    println!("An error occurred, heres the output for the decryption attempt:");
+    println!("- status: {}", status);
+    println!("- stdout: {}", stdout);
+    println!("- stderr: {}", stderr);
+    process::exit(1);
 }
 
 /// Find the character to use in the passphrase for a given dot index.
@@ -106,11 +112,16 @@ fn dot_char(pos: u16) -> char {
     ('1' as u8 + pos as u8) as char
 }
 
+/// Generate the pass phrase for the given pattern.
+fn generate_phrase(pattern: &[&u16]) -> String {
+    pattern.iter().map(|p| dot_char(**p)).collect()
+}
+
 /// Render the given pattern in the terminal.
-fn render_pat(pattern: &Vec<&u16>) {
+fn render_pattern(pattern: &Vec<&u16>) {
     // Create a pattern slug and print it
     let slug = pattern.iter().map(|p| format!("{}", p)).join("-");
-    println!("\n\nPattern: {}", slug);
+    println!("\nPattern: {}", slug);
 
     // Render the pattern grid
     (0..GRID_SIZE).for_each(|y| {
@@ -125,59 +136,49 @@ fn render_pat(pattern: &Vec<&u16>) {
     })
 }
 
-/// Try the given passphrase generated based on a pattern.
-///
-/// Panics when unexpected output is returned (possibly when an item is found).
-fn try_phrase(phrase: &str) {
-    // Build the decrypt command
-    let out = Command::new("adb")
-        .arg("shell")
-        .arg(format!("twrp decrypt '{}'", phrase))
-        .output()
-        .expect("failed to run decrypt command");
-
-    let status = out.status;
-    let stdout = String::from_utf8(out.stdout).expect("output is not in valid UTF-8 format");
-    let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
-
-    // Test for success
-    probe_success();
-
-    if status.success() && stdout == STDOUT_NORMAL && stderr == "" {
-        return;
-    }
-
-    println!("status: {}", status);
-    println!("stdout: {}", stdout);
-    println!("stderr: {}", stderr);
-
-    panic!("got unexpected output");
+/// Render the steps for performing the pattern to the user in the terminal.
+fn render_pattern_steps(pattern: &Vec<&u16>) {
+    // Render the pattern grid
+    (0..GRID_SIZE).for_each(|y| {
+        (0..GRID_SIZE).for_each(|x| {
+            let index = pattern.iter().position(|p| p == &&(y * GRID_SIZE + x));
+            if let Some(index) = index {
+                print!("{} ", index + 1);
+            } else {
+                print!("· ");
+            }
+        });
+        println!();
+    })
 }
 
-/// Prope the phone for descryption success.
+/// Find the (x, y) position for a given dot index.
 ///
-/// Panics when unexpected output is returned (possibly when an item is found).
-fn probe_success() {
-    // Invoke the probe command
-    let out = Command::new("adb")
-        .arg("shell")
-        .arg("ls")
-        .arg(PROBE_FILE)
-        .output()
-        .expect("failed to invoke command to prope for success");
+/// If the `GRID_SIZE` is 4, a dot index of `6` will return `(2, 1)`.
+fn dot_position(dot: u16) -> (u16, u16) {
+    (dot / GRID_SIZE, dot % GRID_SIZE)
+}
 
-    let status = out.status;
-    let stdout = String::from_utf8(out.stdout).expect("output is not in valid UTF-8 format");
-    let stderr = String::from_utf8(out.stderr).expect("output is not in valid UTF-8 format");
+/// Determine the distance between two dots.
+///
+/// See `PATTERN_DISTANCE_MAX`.
+fn distance(a: u16, b: u16) -> u16 {
+    // Get the dot coordinates
+    let a = dot_position(a);
+    let b = dot_position(b);
 
-    // Return for the default state
-    if status.code() == Some(1) && stdout == "" && stderr == PROBE_STDERR {
-        return;
-    }
+    // Determine the distance and return
+    cmp::max(
+        (a.0 as i32 - b.0 as i32).abs(),
+        (a.1 as i32 - b.1 as i32).abs(),
+    ) as u16
+}
 
-    println!("Probe command status: {}", status);
-    println!("Probe command stdout: {}", stdout);
-    println!("Probe command stderr: {}", stderr);
-
-    panic!("got unexpected output");
+/// Test whether the distance between all dots are allowed based on `PATTERN_DISTANCE_MAX`.
+///
+/// If the distance for some dots is greater, `false` is returned and the pattern should be
+/// skipped.
+fn valid_distance(dots: &Vec<&u16>) -> bool {
+    dots.windows(2)
+        .all(|dots| distance(*dots[0], *dots[1]) <= PATTERN_DISTANCE_MAX)
 }

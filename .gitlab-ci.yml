@@ -6,11 +6,5 @@ before_script:
 check:
   script:
     - cargo check --all --verbose
-
-build:
-  script:
-    - cargo build --release --all --verbose
-
-test:
-  script:
     - cargo test --all --verbose
+    - cargo build --release --all --verbose

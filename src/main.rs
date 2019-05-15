@@ -181,3 +181,75 @@ fn valid_distance(dots: &Vec<&u16>) -> bool {
     dots.windows(2)
         .all(|dots| distance(*dots[0], *dots[1]) <= PATTERN_DISTANCE_MAX)
 }
+
+/// Unit tests to validate some of the functions above.
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_dot_char() {
+        assert_eq!(dot_char(0), '1');
+        assert_eq!(dot_char(1), '2');
+        assert_eq!(dot_char(2), '3');
+        assert_eq!(dot_char(8), '9');
+        assert_eq!(dot_char(9), ':');
+        assert_eq!(dot_char(15), '@');
+    }
+
+    #[test]
+    fn test_generate_phrase() {
+        assert_eq!(generate_phrase(&[]), "");
+        assert_eq!(generate_phrase(&[&0, &1, &2]), "123");
+        assert_eq!(
+            generate_phrase(&[&0, &1, &2, &3, &4, &5, &6, &7, &8]),
+            "123456789"
+        );
+        assert_eq!(generate_phrase(&[&9, &15]), ":@");
+    }
+
+    #[test]
+    fn test_dot_position() {
+        assert_eq!(dot_position(0), (0, 0));
+        assert_eq!(dot_position(GRID_SIZE), (1, 0));
+        if GRID_SIZE >= 3 {
+            assert_eq!(dot_position(GRID_SIZE + 2), (1, 2));
+        }
+        assert_eq!(dot_position(GRID_SIZE * 2), (2, 0));
+        assert_eq!(
+            dot_position(GRID_SIZE * GRID_SIZE - 1),
+            (GRID_SIZE - 1, GRID_SIZE - 1)
+        );
+    }
+
+    #[test]
+    fn test_distance() {
+        // Distance of 0
+        assert_eq!(distance(0, 0), 0);
+        assert_eq!(distance(1, 1), 0);
+        assert_eq!(distance(99, 99), 0);
+        assert_eq!(distance(100, 100), 0);
+
+        // Distance of 1
+        assert_eq!(distance(0, 1), 1);
+        assert_eq!(distance(0, GRID_SIZE), 1);
+
+        // Distance of 2
+        if GRID_SIZE >= 3 {
+            assert_eq!(distance(0, 2), 2);
+        }
+        assert_eq!(distance(0, GRID_SIZE * 2), 2);
+        assert_eq!(distance(0, GRID_SIZE * GRID_SIZE - 1), GRID_SIZE - 1);
+    }
+
+    #[test]
+    fn test_valid_distance() {
+        assert!(valid_distance(&vec![&0, &0, &PATTERN_DISTANCE_MAX]));
+        if PATTERN_DISTANCE_MAX <= GRID_SIZE {
+            assert!(!valid_distance(&vec![&0, &0, &(PATTERN_DISTANCE_MAX + 1)]));
+        }
+        if GRID_SIZE >= 3 && PATTERN_DISTANCE_MAX >= 1 {
+            assert!(valid_distance(&vec![&0, &1, &2]));
+        }
+    }
+}

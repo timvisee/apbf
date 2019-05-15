@@ -1,0 +1,16 @@
+image: rust
+
+before_script:
+  - rustc --version && cargo --version
+
+check:
+  script:
+    - cargo check --all --verbose
+
+build:
+  script:
+    - cargo build --release --all --verbose
+
+test:
+  script:
+    - cargo test --all --verbose

@@ -1,3 +1,5 @@
+[![Pipeline status on GitLab CI][pipeline-badge][pipeline-link]
+
 # Android Pattern Brute Force
 A tool for brute forcing an Android security pattern through TWRP recovery.
 
@@ -82,3 +84,5 @@ Check out the [LICENSE](LICENSE) file for more information.
 [rust]: https://rust-lang.org/
 [rustup]: https://rustup.rs/
 [twrp]: https://twrp.me/
+[pipeline-badge]: https://gitlab.com/timvisee/apbf/badges/master/pipeline.svg
+[pipeline-link]: https://gitlab.com/timvisee/apbf/pipelines

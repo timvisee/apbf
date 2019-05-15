@@ -10,7 +10,7 @@ I succeeded to crack my 3x3 pattern in about 1.9 hours.
 
 ## Requirements
 - A pattern lock
-- Android Nougat 8.0 or above
+- Android 8.0 (Nougat) or above
 - [TWRP][twrp] recovery
 - [`adb`][adb] (with connectivity to phone in TWRP)
 - [`git`][git]

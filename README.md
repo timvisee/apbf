@@ -1,4 +1,4 @@
-[![Pipeline status on GitLab CI][pipeline-badge][pipeline-link]
+[![Pipeline status on GitLab CI][pipeline-badge]][pipeline-link]
 
 # Android Pattern Brute Force
 A tool for brute forcing an Android security pattern through TWRP recovery.

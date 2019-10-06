@@ -12,6 +12,7 @@ use std::time::Duration;
 use itertools::Itertools;
 use pbr::ProgressBar;
 use permutator::Permutation;
+use took::Timer;
 
 use config::*;
 
@@ -44,10 +45,10 @@ fn main() {
     println!("Patterns to try: {}", patterns.len());
     let mut pb = ProgressBar::new(patterns.len() as u64);
 
-    // Try all patterns
+    // Try all patterns, start a timer
+    let timer = Timer::new();
     patterns
         .into_iter()
-        .map(|pat| pat.clone())
         .inspect(render_pattern)
         .map(|pattern| (generate_phrase(&pattern), pattern))
         .for_each(|(code, pattern)| {
@@ -58,7 +59,7 @@ fn main() {
 
             // Try the phrase, report on success
             if try_phrase(&code) {
-                println!("\nSuccess!");
+                println!("\nSuccess! Took {}.", timer);
                 println!("Here is your pattern in order:");
                 render_pattern_steps(&pattern);
                 process::exit(0);
@@ -69,7 +70,7 @@ fn main() {
         });
 
     // We did not find any pattern
-    println!("\nDone! No pattern found.");
+    println!("\nDone! No pattern found. Took {}.", timer);
 }
 
 /// Try the given passphrase generated based on a pattern.

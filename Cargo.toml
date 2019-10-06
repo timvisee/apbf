@@ -9,3 +9,4 @@ description = "Tool to brute force Android security pattern through TWRP recover
 itertools = "0.8"
 pbr = "1.0"
 permutator = "0.3"
+took = "0.1"

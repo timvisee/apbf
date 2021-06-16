@@ -8,7 +8,7 @@
 /// Any of:
 /// - `crate::Code::Pattern`
 /// - `crate::Code::Pin`
-pub const CODE_TYPE: crate::Code = crate::Code::Pin;
+pub const CODE_TYPE: crate::Code = crate::Code::Pattern;
 
 /// Pattern:
 /// The dots we should generate patterns on for brute forcing.

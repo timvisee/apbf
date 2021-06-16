@@ -3,6 +3,14 @@
 //! All these constants must be set to correct values for your brute force attempt, before you
 //! start using the tool.
 
+/// What type of code we want to crack. Should likely be a pattern.
+///
+/// Any of:
+/// - `crate::Code::Pattern`
+/// - `crate::Code::Pin`
+pub const CODE_TYPE: crate::Code = crate::Code::Pin;
+
+/// Pattern:
 /// The dots we should generate patterns on for brute forcing.
 ///
 /// The indices are row-by-row based, for example:
@@ -45,15 +53,19 @@
 /// ```
 pub const DOTS: [u16; 9] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
+/// Pattern:
 /// The size of the pattern grid, probably 3, 4 or 5.
 pub const GRID_SIZE: u16 = 3;
 
+/// Pattern:
 /// The minimum length of patterns to attempt.
 pub const PATTERN_LEN_MIN: u16 = 4;
 
+/// Pattern:
 /// The maximum length of patterns to attempt.
 pub const PATTERN_LEN_MAX: u16 = 5;
 
+/// Pattern:
 /// The maximum distance between dots in a pattern, must be `>= 1`.
 ///
 /// A value of 1 means connected dots are always next to each other (may be diagonal).

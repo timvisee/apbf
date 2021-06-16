@@ -26,6 +26,21 @@ const STDOUT_SUCCESS: &str = "Data successfully decrypted";
 
 /// Application entry point.
 fn main() {
+    // Start a timer for the whole process
+    let timer = Timer::new();
+
+    // Start brute forcing
+    match CODE_TYPE {
+        Code::Pattern => brute_force_pattern(&timer),
+        Code::Pin => brute_force_pin(&timer),
+    }
+
+    // We did not find any code
+    println!("\nDone! No code found. Took {}.", timer);
+}
+
+/// Brute force pattern.
+fn brute_force_pattern(timer: &Timer) {
     // Get a list of dots we can use
     let dots = DOTS;
 
@@ -46,7 +61,6 @@ fn main() {
     let mut pb = ProgressBar::new(patterns.len() as u64);
 
     // Try all patterns, start a timer
-    let timer = Timer::new();
     patterns
         .into_iter()
         .inspect(render_pattern)
@@ -68,9 +82,47 @@ fn main() {
             // Wait for the next attempt
             thread::sleep(Duration::from_millis(ATTEMPT_TIMEOUT));
         });
+}
 
-    // We did not find any pattern
-    println!("\nDone! No pattern found. Took {}.", timer);
+/// Brute force pin.
+fn brute_force_pin(timer: &Timer) {
+    // Set the minimum and maximum
+    let min = 0;
+    let max = 9999;
+    let count = max - min + 1;
+
+    // Initialse brute forcing
+    println!("Codes to try: {}", max - min + 1);
+    let mut pb = ProgressBar::new(count);
+
+    // Try all pins
+    for pin in min..=max {
+        let code = format!("{:04}", pin);
+
+        // Report the phrase to try, show progress bar
+        println!("Passphrase: '{}'", code);
+        pb.inc();
+        println!();
+
+        // Try the phrase, report on success
+        if try_phrase(&code) {
+            println!("\nSuccess! Took {}.", timer);
+            println!("Here is your PIN code: {}", code);
+            process::exit(0);
+        }
+
+        // Wait for the next attempt
+        thread::sleep(Duration::from_millis(ATTEMPT_TIMEOUT));
+    }
+}
+
+/// Code type.
+pub enum Code {
+    /// A pattern.
+    Pattern,
+
+    /// A code.
+    Pin,
 }
 
 /// Try the given passphrase generated based on a pattern.

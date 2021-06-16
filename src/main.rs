@@ -80,7 +80,7 @@ fn brute_force_pattern(timer: &Timer) {
             }
 
             // Wait for the next attempt
-            thread::sleep(Duration::from_millis(ATTEMPT_TIMEOUT));
+            thread::sleep(Duration::from_millis(ATTEMPT_DELAY));
         });
 }
 
@@ -112,7 +112,7 @@ fn brute_force_pin(timer: &Timer) {
         }
 
         // Wait for the next attempt
-        thread::sleep(Duration::from_millis(ATTEMPT_TIMEOUT));
+        thread::sleep(Duration::from_millis(ATTEMPT_DELAY));
     }
 }
 

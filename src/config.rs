@@ -85,4 +85,4 @@ pub const PATTERN_DISTANCE_MAX: u16 = 1;
 ///
 /// This should be >=10000 because TWRP has a decrypt attempt timeout of about 10 seconds, any new
 /// attempts within that time frame fail with no warning.
-pub const ATTEMPT_TIMEOUT: u64 = 10_500;
+pub const ATTEMPT_DELAY: u64 = 10_500;

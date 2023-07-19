@@ -147,7 +147,10 @@ fn try_phrase(phrase: &str) -> bool {
     }
 
     // Regular output, continue
-    if status.success() && stdout == STDOUT_NORMAL && stderr == "" {
+    if status.success()
+        && (stdout == STDOUT_NORMAL || stdout.contains("Failed to decrypt"))
+        && stderr == ""
+    {
         return false;
     }
 

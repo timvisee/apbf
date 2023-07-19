@@ -86,3 +86,13 @@ pub const PATTERN_DISTANCE_MAX: u16 = 1;
 /// This should be >=10000 because TWRP has a decrypt attempt timeout of about 10 seconds, any new
 /// attempts within that time frame fail with no warning.
 pub const ATTEMPT_DELAY: u64 = 10_500;
+
+/// How far into the pattern list to skip before attempting to continue. This is 0-indexed.
+///
+/// This allows you to resume interrupted runs. For example, if you cancelled apbf after 5 unlock
+/// attempts, setting RESUME_FROM = 5 will skip 5 attempts and start on the 6th.
+///
+/// Note that this is only useful holding all other values in this config.rs file constant between
+/// runs; if you change values that affect what patterns are tried, this value loses meaning and
+/// should not be used.
+pub const RESUME_FROM: usize = 0;

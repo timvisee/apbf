@@ -59,10 +59,12 @@ fn brute_force_pattern(timer: &Timer) {
     // Initialse brute forcing
     println!("Patterns to try: {}", patterns.len());
     let mut pb = ProgressBar::new(patterns.len() as u64);
+    pb.set(RESUME_FROM as u64);
 
     // Try all patterns, start a timer
     patterns
         .into_iter()
+        .skip(RESUME_FROM)
         .inspect(render_pattern)
         .map(|pattern| (generate_phrase(&pattern), pattern))
         .for_each(|(code, pattern)| {
